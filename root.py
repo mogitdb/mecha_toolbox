@@ -12,6 +12,7 @@ from screens.notebook import NotebookScreen
 from screens.rss_updates import RSSUpdatesScreen
 from screens.startup import StartupDialog, get_user_name
 
+
 # Update the base path for resources
 RESOURCE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resources")
 TOOLS_PATH = os.path.join(RESOURCE_PATH, "tools")
@@ -28,6 +29,8 @@ check_and_install_libraries()
 from resources.tools.folder_scanner.folder_scanner import show_folder_scanner_dialog
 from resources.tools.mkv_to_mp4.mkv_to_mp4 import show_mkv_to_mp4_converter
 from resources.tools.ytdl.ytdl import show_youtube_downloader
+from resources.tools.folder_encryptor.folder_encryptor import show_folder_encryptor_dialog
+from resources.tools.pdf_scraper.pdf_scraper import show_pdf_scraper_dialog
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -250,6 +253,10 @@ class MainWindow(QMainWindow):
         folder_scanner_action.triggered.connect(self.show_folder_scanner)
         mkv_to_mp4_action = menu.addAction("MKV to MP4 Converter")
         mkv_to_mp4_action.triggered.connect(self.show_mkv_to_mp4_converter)
+        folder_encryptor_action = menu.addAction("Folder Encryptor")
+        folder_encryptor_action.triggered.connect(self.show_folder_encryptor)
+        pdf_scraper_action = menu.addAction("PDF Scraper")
+        pdf_scraper_action.triggered.connect(self.show_pdf_scraper)
         
         menu.exec(self.menu_button.mapToGlobal(self.menu_button.rect().bottomLeft()))
 
@@ -277,6 +284,12 @@ class MainWindow(QMainWindow):
 
     def show_mkv_to_mp4_converter(self):
         show_mkv_to_mp4_converter(self)
+
+    def show_folder_encryptor(self):
+        show_folder_encryptor_dialog(self)
+
+    def show_pdf_scraper(self):
+        show_pdf_scraper_dialog(self)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

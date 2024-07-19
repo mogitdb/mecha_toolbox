@@ -8,6 +8,8 @@ def check_and_install_libraries():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     requirements_path = os.path.join(current_dir, 'requirements.txt')
 
+    print(f"Checking requirements from: {requirements_path}")
+
     # Read the requirements
     with open(requirements_path, 'r') as f:
         requirements = f.read().splitlines()
@@ -17,7 +19,9 @@ def check_and_install_libraries():
     for requirement in requirements:
         try:
             pkg_resources.require(requirement)
+            print(f"Requirement satisfied: {requirement}")
         except (pkg_resources.DistributionNotFound, pkg_resources.VersionConflict):
+            print(f"Requirement missing or outdated: {requirement}")
             missing.append(requirement)
 
     if missing:
@@ -25,8 +29,8 @@ def check_and_install_libraries():
         try:
             subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", *missing])
             print("All required libraries have been successfully installed/updated.")
-        except subprocess.CalledProcessError:
-            print("Failed to install/update required libraries automatically.")
+        except subprocess.CalledProcessError as e:
+            print(f"Failed to install/update required libraries automatically. Error: {str(e)}")
             print("Please install/update the following libraries manually:")
             for lib in missing:
                 print(f"- {lib}")
