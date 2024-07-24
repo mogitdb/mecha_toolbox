@@ -27,7 +27,7 @@ check_and_install_libraries()
 
 # Import tool functions
 from resources.tools.folder_scanner.folder_scanner import show_folder_scanner_dialog
-from resources.tools.mkv_to_mp4.mkv_to_mp4 import show_mkv_to_mp4_converter
+from resources.tools.video_format_converter.video_format_converter import show_video_format_converter
 from resources.tools.ytdl.ytdl import show_youtube_downloader
 from resources.tools.folder_encryptor.folder_encryptor import show_folder_encryptor_dialog
 from resources.tools.pdf_scraper.pdf_scraper import show_pdf_scraper_dialog
@@ -251,8 +251,8 @@ class MainWindow(QMainWindow):
         youtube_downloader_action.triggered.connect(self.show_youtube_downloader)
         folder_scanner_action = menu.addAction("Folder Scanner")
         folder_scanner_action.triggered.connect(self.show_folder_scanner)
-        mkv_to_mp4_action = menu.addAction("MKV to MP4 Converter")
-        mkv_to_mp4_action.triggered.connect(self.show_mkv_to_mp4_converter)
+        video_converter_action = menu.addAction("Video Format Converter")
+        video_converter_action.triggered.connect(self.show_video_format_converter)
         folder_encryptor_action = menu.addAction("Folder Encryptor")
         folder_encryptor_action.triggered.connect(self.show_folder_encryptor)
         pdf_scraper_action = menu.addAction("PDF Scraper")
@@ -282,8 +282,8 @@ class MainWindow(QMainWindow):
     def show_folder_scanner(self):
         show_folder_scanner_dialog(self)
 
-    def show_mkv_to_mp4_converter(self):
-        show_mkv_to_mp4_converter(self)
+    def show_video_format_converter(self):
+        show_video_format_converter(self)
 
     def show_folder_encryptor(self):
         show_folder_encryptor_dialog(self)
