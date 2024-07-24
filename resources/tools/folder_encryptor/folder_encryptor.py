@@ -9,27 +9,6 @@ import datetime
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QPushButton, 
                                QLabel, QLineEdit, QMessageBox, QFileDialog, QProgressBar)
 from PySide6.QtCore import Signal, QThread
-
-# Function to check if a required library is installed
-def is_library_installed(library):
-    try:
-        __import__(library)
-        return True
-    except ImportError:
-        return False
-
-# Function to install a library using pip
-def install_library(library):
-    subprocess.check_call([sys.executable, '-m', 'pip', 'install', library])
-
-# Check and install required libraries
-required_libraries = ['pyzipper']
-for lib in required_libraries:
-    if not is_library_installed(lib):
-        print(f"Installing {lib}...")
-        install_library(lib)
-
-# Now that we're sure pyzipper is installed, we can import it
 import pyzipper
 
 class EncryptionThread(QThread):
