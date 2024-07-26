@@ -17,7 +17,7 @@ from resources.tools.music_player.music_player import show_music_player
 # Update the base path for resources
 RESOURCE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resources")
 TOOLS_PATH = os.path.join(RESOURCE_PATH, "tools")
-USER_FOLDER = os.path.expanduser("~/.mecha_toolbox")
+USER_FOLDER = os.path.join(RESOURCE_PATH, "user")
 if not os.path.exists(USER_FOLDER):
     os.makedirs(USER_FOLDER)
 
@@ -246,12 +246,22 @@ class MainWindow(QMainWindow):
         self.save_volume(value)
 
     def save_volume(self, value):
-        settings = QSettings(os.path.join(USER_FOLDER, "settings.ini"), QSettings.IniFormat)
-        settings.setValue("volume", value)
+        settings_path = os.path.join(USER_FOLDER, "settings.json")
+        settings = {}
+        if os.path.exists(settings_path):
+            with open(settings_path, "r") as f:
+                settings = json.load(f)
+        settings["volume"] = value
+        with open(settings_path, "w") as f:
+            json.dump(settings, f)
 
     def load_volume(self):
-        settings = QSettings(os.path.join(USER_FOLDER, "settings.ini"), QSettings.IniFormat)
-        return settings.value("volume", 50, type=int)
+        settings_path = os.path.join(USER_FOLDER, "settings.json")
+        if os.path.exists(settings_path):
+            with open(settings_path, "r") as f:
+                settings = json.load(f)
+                return settings.get("volume", 50)
+        return 50
 
     def open_settings(self):
         # Implement settings dialog here

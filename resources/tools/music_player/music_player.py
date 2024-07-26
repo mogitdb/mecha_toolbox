@@ -1,6 +1,7 @@
 import os
 import sys
 import random
+import json
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, 
                                QListWidget, QLabel, QFileDialog, QMessageBox, QListWidgetItem)
 from PySide6.QtCore import Qt, QUrl, QDir, Signal
@@ -87,8 +88,13 @@ class MusicPlayer(QWidget):
         layout.addWidget(self.now_playing_label)
 
     def check_first_launch(self):
-        settings = QSettings(os.path.join(self.user_folder, "settings.ini"), QSettings.IniFormat)
-        if not settings.value("music_player_first_launch", True, type=bool):
+        settings_path = os.path.join(self.user_folder, "settings.json")
+        settings = {}
+        if os.path.exists(settings_path):
+            with open(settings_path, "r") as f:
+                settings = json.load(f)
+        
+        if not settings.get("music_player_first_launch", True):
             return
 
         message = ("Welcome to the Music Player!\n\n"
@@ -97,7 +103,10 @@ class MusicPlayer(QWidget):
                 f"{os.path.join(QDir.homePath(), 'Music', 'playlists')}\n\n"
                 "Enjoy your tunes!")
         QMessageBox.information(self, "Music Player - First Launch", message)
-        settings.setValue("music_player_first_launch", False)
+        
+        settings["music_player_first_launch"] = False
+        with open(settings_path, "w") as f:
+            json.dump(settings, f)
 
     def refresh_playlists(self):
         playlists_dir = os.path.join(QDir.homePath(), "Music", "playlists")
