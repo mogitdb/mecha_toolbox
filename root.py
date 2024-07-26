@@ -3,7 +3,7 @@ import os
 import json
 from datetime import datetime
 from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
-                               QPushButton, QLabel, QStatusBar, QMenu, QStackedWidget, QSlider)
+                               QPushButton, QLabel, QStatusBar, QMenu, QStackedWidget, QSlider, QMessageBox)
 from PySide6.QtGui import QFont, QIcon, QFontDatabase, QMovie
 from PySide6.QtCore import Qt, QSize, QTimer, QUrl, QSettings
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
@@ -12,7 +12,8 @@ from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 from screens.notebook import NotebookScreen
 from screens.rss_updates import RSSUpdatesScreen
 from screens.startup import StartupDialog, get_user_name
-from resources.tools.music_player.music_player import show_music_player
+from resources.widgets.calendar_reminder import CalendarReminderWidget
+
 
 # Update the base path for resources
 RESOURCE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resources")
@@ -35,6 +36,8 @@ from resources.tools.video_format_converter.video_format_converter import show_v
 from resources.tools.ytdl.ytdl import show_youtube_downloader
 from resources.tools.folder_encryptor.folder_encryptor import show_folder_encryptor_dialog
 from resources.tools.pdf_scraper.pdf_scraper import show_pdf_scraper_dialog
+from resources.tools.music_player.music_player import show_music_player
+from resources.tools.social_blackbook.social_blackbook import show_social_blackbook
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -67,7 +70,8 @@ class MainWindow(QMainWindow):
             self.custom_font = QFont(font_family)
         else:
             self.custom_font = QFont("Arial")  # Fallback font
-        
+
+        self.calendar_widget = None
         self.setup_audio()
         self.setup_ui()
         
@@ -127,9 +131,16 @@ class MainWindow(QMainWindow):
         self.stacked_widget = QStackedWidget()
         main_layout.addWidget(self.stacked_widget)
 
-        # Create home screen (empty for now)
+        # Create home screen with calendar widget
         self.home_screen = QWidget()
+        home_layout = QVBoxLayout(self.home_screen)
+        
+        self.calendar_widget = CalendarReminderWidget()
+        home_layout.addWidget(self.calendar_widget)
+
         self.stacked_widget.addWidget(self.home_screen)
+        self.stacked_widget.setCurrentWidget(self.home_screen)
+
 
         # Set the initial screen
         self.stacked_widget.setCurrentWidget(self.home_screen)
@@ -286,6 +297,8 @@ class MainWindow(QMainWindow):
         notebook_action.triggered.connect(self.show_notebook)
         rss_updates_action = menu.addAction("RSS Updates")
         rss_updates_action.triggered.connect(self.show_rss_updates)
+        social_blackbook_action = menu.addAction("Social Blackbook")
+        social_blackbook_action.triggered.connect(self.show_social_blackbook)
         
         # Add other tools here
         youtube_downloader_action = menu.addAction("YouTube Downloader")
@@ -311,6 +324,9 @@ class MainWindow(QMainWindow):
             saved_volume = self.load_volume()
             self.audio_output.setVolume(saved_volume / 100.0)
             self.volume_slider.setValue(saved_volume)
+        elif self.stacked_widget.currentWidget() == self.social_blackbook:
+            # Update the calendar widget when returning from social blackbook
+            self.calendar_widget.set_social_blackbook(self.social_blackbook)
         self.stacked_widget.setCurrentWidget(self.home_screen)
         self.back_button.setVisible(False)
 
@@ -340,6 +356,15 @@ class MainWindow(QMainWindow):
 
     def show_pdf_scraper(self):
         show_pdf_scraper_dialog(self)
+
+    def show_social_blackbook(self):
+        self.social_blackbook = show_social_blackbook(self)
+        self.stacked_widget.addWidget(self.social_blackbook)
+        self.stacked_widget.setCurrentWidget(self.social_blackbook)
+        self.back_button.setVisible(True)
+
+        # Update the calendar widget with the loaded social blackbook
+        self.calendar_widget.set_social_blackbook(self.social_blackbook)
 
     def show_music_player(self):
         if self.music_player is None:
