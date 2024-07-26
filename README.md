@@ -9,8 +9,10 @@ Mecha's Toolbox is a versatile desktop application that combines various utiliti
 - RSS feed reader
 - YouTube video downloader
 - Folder scanner
-- MKV to MP4 converter
-- Background music player with volume control
+- Video format converter
+- Folder encryptor
+- PDF scraper
+- Music player with playlist support and basic controls
 
 ## Requirements
 - Python 3.7 or higher
@@ -24,23 +26,32 @@ Mecha's Toolbox is a versatile desktop application that combines various utiliti
    cd mechas-toolbox
    ```
 
-2. Run the application:
+2. Install the required dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
+
+3. Run the application:
    ```
    python root.py
    ```
-
-   On first run, the application will automatically check for and install required dependencies. Ensure you have an active internet connection and necessary permissions for pip to install packages.
 
 ## Usage
 Upon first launch, you'll be prompted to enter your name. The application will then greet you based on the time of day.
 
 Navigate through the various tools using the menu button in the top-left corner. Each tool can be accessed from this menu.
 
+### Music Player
+- Access the music player from the tools menu
+- Select a playlist from your Music/playlists folder
+- Use the play, pause, next, and previous buttons to control playback
+- Toggle shuffle and loop modes as desired
+
 ## Troubleshooting
-If you encounter issues with automatic dependency installation:
+If you encounter issues with dependency installation:
 1. Ensure you have the latest version of pip installed.
 2. Check your internet connection.
-3. If problems persist, you may need to manually install the required packages. Refer to the `resources/library/requirements.txt` file for a list of dependencies.
+3. If problems persist, you may need to manually install the required packages listed in the `requirements.txt` file.
 
 ## Contributing
 Contributions to Mecha's Toolbox are welcome! Please feel free to submit pull requests, report bugs, or suggest new features.

@@ -1,21 +1,25 @@
 import sys
 import os
+import json
 from datetime import datetime
 from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                                QPushButton, QLabel, QStatusBar, QMenu, QStackedWidget, QSlider)
 from PySide6.QtGui import QFont, QIcon, QFontDatabase, QMovie
-from PySide6.QtCore import Qt, QSize, QTimer, QUrl
+from PySide6.QtCore import Qt, QSize, QTimer, QUrl, QSettings
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 
 # Import screen classes
 from screens.notebook import NotebookScreen
 from screens.rss_updates import RSSUpdatesScreen
 from screens.startup import StartupDialog, get_user_name
-
+from resources.tools.music_player.music_player import show_music_player
 
 # Update the base path for resources
 RESOURCE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resources")
 TOOLS_PATH = os.path.join(RESOURCE_PATH, "tools")
+USER_FOLDER = os.path.expanduser("~/.mecha_toolbox")
+if not os.path.exists(USER_FOLDER):
+    os.makedirs(USER_FOLDER)
 
 # Add TOOLS_PATH and RESOURCE_PATH to sys.path
 sys.path.append(TOOLS_PATH)
@@ -72,6 +76,8 @@ class MainWindow(QMainWindow):
         self.timer.timeout.connect(self.update_gifs)
         self.timer.start(60000)  # Update every minute
 
+        self.music_player = None
+
     def get_or_ask_user_name(self):
         name = get_user_name()
         if not name:
@@ -84,6 +90,11 @@ class MainWindow(QMainWindow):
         self.audio_output = QAudioOutput()
         self.media_player = QMediaPlayer()
         self.media_player.setAudioOutput(self.audio_output)
+        
+        # Load and set the volume before playing
+        volume = self.load_volume()
+        self.audio_output.setVolume(volume / 100.0)
+        
         bgm_path = os.path.join(RESOURCE_PATH, "sound", "music", "bgm.mp3")
         if os.path.exists(bgm_path):
             self.media_player.setSource(QUrl.fromLocalFile(bgm_path))
@@ -150,12 +161,20 @@ class MainWindow(QMainWindow):
         
         top_bar.addStretch(1)
         
+        volume_layout = QVBoxLayout()
+        volume_label = QLabel("Volume")
+        volume_label.setAlignment(Qt.AlignCenter)
+        volume_label.setFont(self.custom_font)  # Apply custom font to volume label
+        volume_layout.addWidget(volume_label)
+        
         self.volume_slider = QSlider(Qt.Horizontal)
         self.volume_slider.setRange(0, 100)
-        self.volume_slider.setValue(50)
+        self.volume_slider.setValue(self.load_volume())
         self.volume_slider.setFixedWidth(100)
         self.volume_slider.valueChanged.connect(self.change_volume)
-        top_bar.addWidget(self.volume_slider)
+        volume_layout.addWidget(self.volume_slider)
+        
+        top_bar.addLayout(volume_layout)
         
         settings_button = self.create_settings_button()
         top_bar.addWidget(settings_button)
@@ -220,7 +239,19 @@ class MainWindow(QMainWindow):
 
     def change_volume(self, value):
         volume = value / 100.0
-        self.audio_output.setVolume(volume)
+        if self.music_player and self.stacked_widget.currentWidget() == self.music_player:
+            self.music_player.set_volume(value)
+        else:
+            self.audio_output.setVolume(volume)
+        self.save_volume(value)
+
+    def save_volume(self, value):
+        settings = QSettings(os.path.join(USER_FOLDER, "settings.ini"), QSettings.IniFormat)
+        settings.setValue("volume", value)
+
+    def load_volume(self):
+        settings = QSettings(os.path.join(USER_FOLDER, "settings.ini"), QSettings.IniFormat)
+        return settings.value("volume", 50, type=int)
 
     def open_settings(self):
         # Implement settings dialog here
@@ -257,10 +288,19 @@ class MainWindow(QMainWindow):
         folder_encryptor_action.triggered.connect(self.show_folder_encryptor)
         pdf_scraper_action = menu.addAction("PDF Scraper")
         pdf_scraper_action.triggered.connect(self.show_pdf_scraper)
+        music_player_action = menu.addAction("Music Player")
+        music_player_action.triggered.connect(self.show_music_player)
         
         menu.exec(self.menu_button.mapToGlobal(self.menu_button.rect().bottomLeft()))
 
     def go_back(self):
+        if self.stacked_widget.currentWidget() == self.music_player:
+            self.music_player.stop_playback()
+            self.media_player.play()  # Resume menu music when exiting music player
+            # Restore menu music volume when leaving music player
+            saved_volume = self.load_volume()
+            self.audio_output.setVolume(saved_volume / 100.0)
+            self.volume_slider.setValue(saved_volume)
         self.stacked_widget.setCurrentWidget(self.home_screen)
         self.back_button.setVisible(False)
 
@@ -290,6 +330,28 @@ class MainWindow(QMainWindow):
 
     def show_pdf_scraper(self):
         show_pdf_scraper_dialog(self)
+
+    def show_music_player(self):
+        if self.music_player is None:
+            self.music_player = show_music_player(self, USER_FOLDER)
+            self.music_player.music_started.connect(self.on_music_player_started)
+            self.music_player.music_stopped.connect(self.on_music_player_stopped)
+            self.stacked_widget.addWidget(self.music_player)
+        self.stacked_widget.setCurrentWidget(self.music_player)
+        self.back_button.setVisible(True)
+        self.media_player.pause()  # Pause the menu music
+        # Set the music player volume to match the current volume
+        self.music_player.set_volume(self.volume_slider.value())
+
+    def on_music_player_started(self):
+        self.media_player.pause()  # Ensure menu music is paused when music player starts
+
+    def on_music_player_stopped(self):
+        if self.stacked_widget.currentWidget() == self.music_player:
+            self.media_player.play()  # Resume menu music if still on music player screen and no music is playing
+
+    def update_volume_slider(self, value):
+        self.volume_slider.setValue(value)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
