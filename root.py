@@ -38,6 +38,7 @@ from resources.tools.folder_encryptor.folder_encryptor import show_folder_encryp
 from resources.tools.pdf_scraper.pdf_scraper import show_pdf_scraper_dialog
 from resources.tools.music_player.music_player import show_music_player
 from resources.tools.social_blackbook.social_blackbook import show_social_blackbook
+from resources.tools.macro_calculator.macro_calculator import show_macro_calculator
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -313,6 +314,8 @@ class MainWindow(QMainWindow):
         pdf_scraper_action.triggered.connect(self.show_pdf_scraper)
         music_player_action = menu.addAction("Music Player")
         music_player_action.triggered.connect(self.show_music_player)
+        macro_calculator_action = menu.addAction("Macro Calculator")
+        macro_calculator_action.triggered.connect(self.show_macro_calculator)
         
         menu.exec(self.menu_button.mapToGlobal(self.menu_button.rect().bottomLeft()))
 
@@ -387,6 +390,12 @@ class MainWindow(QMainWindow):
 
     def update_volume_slider(self, value):
         self.volume_slider.setValue(value)
+
+    def show_macro_calculator(self):
+        macro_calculator = show_macro_calculator(self, USER_FOLDER)
+        self.stacked_widget.addWidget(macro_calculator)
+        self.stacked_widget.setCurrentWidget(macro_calculator)
+        self.back_button.setVisible(True)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
